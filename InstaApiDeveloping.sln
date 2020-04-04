@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1062
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InstaApiDeveloping", "InstaApiDeveloping\InstaApiDeveloping.csproj", "{97C4CFA2-0C7D-42DC-8DB6-3848606DE0FC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Insta", "Insta\Insta.csproj", "{4E6332EE-B904-4A77-8EB0-E15B47B83887}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Informers", "Informers\Informers.csproj", "{EB1B1A64-9936-4D90-8D7A-932C8636619C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{97C4CFA2-0C7D-42DC-8DB6-3848606DE0FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97C4CFA2-0C7D-42DC-8DB6-3848606DE0FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97C4CFA2-0C7D-42DC-8DB6-3848606DE0FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97C4CFA2-0C7D-42DC-8DB6-3848606DE0FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E6332EE-B904-4A77-8EB0-E15B47B83887}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E6332EE-B904-4A77-8EB0-E15B47B83887}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E6332EE-B904-4A77-8EB0-E15B47B83887}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E6332EE-B904-4A77-8EB0-E15B47B83887}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB1B1A64-9936-4D90-8D7A-932C8636619C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB1B1A64-9936-4D90-8D7A-932C8636619C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB1B1A64-9936-4D90-8D7A-932C8636619C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB1B1A64-9936-4D90-8D7A-932C8636619C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5F11A7B4-B635-499A-93A4-7EE0BECC617D}
+	EndGlobalSection
+EndGlobal
