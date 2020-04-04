@@ -1,4 +1,6 @@
-﻿using System;
+﻿//Ссылку на информеров надо будет через nuget
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +8,6 @@ using Informers;
 using InstagramApiSharp.API;
 using InstagramApiSharp.API.Builder;
 using InstagramApiSharp.Classes;
-using InstagramApiSharp.Logger;
 
 namespace Insta
 {
@@ -18,7 +19,7 @@ namespace Insta
     {
         public IInstaApi InstaApi { get; set; }
 
-        //не рекомендуется, лучше стобы клиент порлностью строил архитектуру сам
+        //не рекомендуется, лучше стобы клиент полностью строил архитектуру сам
         public async Task<bool> AuthentificateByDefaultWay(string stateFile, IInputOutputService IOService)
         {
             var authentificateResult = await AuthentificateFromStateFileAsync(stateFile, IOService);
@@ -29,7 +30,7 @@ namespace Insta
                 agreementAnswer = await IOService.GetAgreementAnswer($"Do you want to continue as {InstaApi.GetLoggedUser().UserName}");
             }
 
-            if (!authentificateResult || agreementAnswer == EAgreementAnswer.Yes)
+            if (!authentificateResult || agreementAnswer == EAgreementAnswer.No)
             {
                 await IOService.OutputMessageAsync("Enter Your user name:");
                 var userName = await IOService.GetMessage();
@@ -48,7 +49,6 @@ namespace Insta
             return true;
         }
 
-        //Ссылку на информеров надо будет через nuget
         public async Task<bool> AuthentificateFromStateFileAsync(string stateFile, IInputOutputService IOService)
         {
             try
@@ -60,7 +60,6 @@ namespace Insta
 
                     InstaApi = InstaApiBuilder.CreateBuilder()
                         .SetUser(InstagramApiSharp.Classes.UserSessionData.Empty)
-                        //.SetRequestDelay(RequestDelay.FromSeconds(2, 2))
                         .Build();
 
                     using (var fs = File.OpenRead(stateFile))
@@ -75,6 +74,7 @@ namespace Insta
                 else
                 {
                     await IOService.OutputMessageAsync($"There is no such file {stateFile}");
+                    return false;
                 }
             }
             catch (Exception e)
@@ -96,7 +96,6 @@ namespace Insta
 
             InstaApi = InstaApiBuilder.CreateBuilder()
                 .SetUser(userSesData)
-                //.UseLogger(new DebugLogger(LogLevel.Exceptions))
                 .Build();
 
             if (!InstaApi.IsUserAuthenticated)
@@ -107,9 +106,100 @@ namespace Insta
                 if (!logInResult.Succeeded)
                 {
                     await IOService.OutputMessageAsync($"Unable to login: {logInResult.Info.Message}");
-                    return false;
+
+                    if (logInResult.Value == InstaLoginResult.ChallengeRequired)
+                    {
+                        var verificationResult = await AuthenticateByVerificationsAsync(userSessionData, IOService);
+
+                        if (!verificationResult)
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
+
+            SaveSessionToFile(stateFile);
+
+            return true;
+        }
+
+        private async Task<bool> AuthenticateByVerificationsAsync(UserSessionData userSessionData, IInputOutputService IOService)
+        {
+            var challenge = await InstaApi.GetChallengeRequireVerifyMethodAsync();
+            if (challenge.Succeeded)
+            {
+                if (challenge.Value.SubmitPhoneRequired)
+                {
+                    await IOService.OutputMessageAsync("Please enter your phone number to verify:");
+                    var phoneNumber = await IOService.GetMessage();
+
+                    var submitPhone = await InstaApi.SubmitPhoneNumberForChallengeRequireAsync(phoneNumber);
+                    if (submitPhone.Succeeded)
+                    {
+                        await IOService.OutputMessageAsync("Phone number for Challenge submitted");
+                    }
+                    else
+                    {
+                        await IOService.OutputMessageAsync(submitPhone.Info.Message);
+                    }
+                }
+                else
+                {
+                    if (challenge.Value.StepData != null)
+                    {
+                        if (!string.IsNullOrEmpty(challenge.Value.StepData.PhoneNumber))
+                        {
+                            // send verification code to phone number
+                            var phoneNumber = await InstaApi.RequestVerifyCodeToSMSForChallengeRequireAsync();
+                            await IOService.OutputMessageAsync($"Enter a code sent to your number: {phoneNumber.Value.StepData.PhoneNumberPreview}");
+                        }
+                        if (!string.IsNullOrEmpty(challenge.Value.StepData.Email))
+                        {
+                            var email = await InstaApi.RequestVerifyCodeToEmailForChallengeRequireAsync();
+                            await IOService.OutputMessageAsync($"Enter a code sent to your mail: {email.Value.StepData.ContactPoint}");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                await IOService.OutputMessageAsync(challenge.Info.Message);
+            }
+
+            string code = await IOService.GetMessage();
+            var verifyLogin = await InstaApi.VerifyCodeForChallengeRequireAsync(code);
+            if (verifyLogin.Succeeded)
+            {
+                if (InstaApi == null || !InstaApi.IsUserAuthenticated)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                // two factor is required
+                if (verifyLogin.Value == InstaLoginResult.TwoFactorRequired)
+                {
+                    await IOService.OutputMessageAsync("Two Factor required");
+                }
+                else
+                {
+                    await IOService.OutputMessageAsync(verifyLogin.Info.Message);
+                }
+
+                return false;
+            }
+        }
+
+        private void SaveSessionToFile(string stateFile)
+        {
             // save session in file
             var state = InstaApi.GetStateDataAsStream();
             // in .net core or uwp apps don't use GetStateDataAsStream.
@@ -121,8 +211,6 @@ namespace Insta
                 state.Seek(0, SeekOrigin.Begin);
                 state.CopyTo(fileStream);
             }
-
-            return true;
         }
 
         public async Task DoShow()

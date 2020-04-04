@@ -27,7 +27,7 @@ namespace InstaApiDeveloping
                 return false;
             }
 
-            await IOService.OutputMessageAsync("User name:");
+            await IOService.OutputMessageAsync("User name to watch stories:");
             var userName = await IOService.GetMessage();
 
             var userService = new UserService(apiKeeper.InstaApi);
