@@ -7,8 +7,6 @@ namespace InstaApiDeveloping
     {
         public static async Task Main()
         {
-            //new StartUp().Install();
-
             await ExecuteAsync();
 
             Console.ReadKey();

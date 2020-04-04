@@ -32,7 +32,8 @@ namespace Insta
 
             if (!authentificateResult || agreementAnswer == EAgreementAnswer.No)
             {
-                await IOService.OutputMessageAsync("Enter Your user name:");
+                await IOService.
+                 OutputMessageAsync("Enter Your user name:");
                 var userName = await IOService.GetMessage();
                 await IOService.OutputMessageAsync("Enter Your password:");
                 var password = await IOService.GetMessage();

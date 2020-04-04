@@ -1,13 +1,12 @@
-﻿using System.Threading.Tasks;
-using System;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Informers;
 using Insta;
+using Insta.StoryProcessor;
 using Insta.StoryProcessor.Services;
 using Insta.UserProcessor.Services;
-using System.Collections.Generic;
-using Insta.StoryProcessor;
-using System.Linq;
-using System.Diagnostics;
-using Informers;
 
 namespace InstaApiDeveloping
 {
