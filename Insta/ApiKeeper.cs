@@ -19,7 +19,7 @@ namespace Insta
     {
         public IInstaApi InstaApi { get; set; }
 
-        //не рекомендуется, лучше стобы клиент полностью строил архитектуру сам
+        //не рекомендуется, лучше чтобы клиент полностью строил архитектуру сам
         public async Task<bool> AuthentificateByDefaultWay(string stateFile, IInputOutputService IOService)
         {
             var authentificateResult = await AuthentificateFromStateFileAsync(stateFile, IOService);
