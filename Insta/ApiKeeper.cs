@@ -107,18 +107,25 @@ namespace Insta
                 {
                     await IOService.OutputMessageAsync($"Unable to login: {logInResult.Info.Message}");
 
-                    if (logInResult.Value == InstaLoginResult.ChallengeRequired)
+                    switch(logInResult.Value)
                     {
-                        var verificationResult = await AuthenticateByVerificationsAsync(userSessionData, IOService);
-
-                        if (!verificationResult)
-                        {
+                        case InstaLoginResult.ChallengeRequired:
+                            var verificationResult = await AuthenticateByVerificationsAsync(userSessionData, IOService);
+                            if (!verificationResult)
+                            {
+                                return false;
+                            }
+                            break;
+                        case InstaLoginResult.TwoFactorRequired:
+                            var twoFactorLoginResult = await AuthenticateByTwoFactorAsync(IOService);
+                            if (!twoFactorLoginResult)
+                            {
+                                return false;
+                            }
+                            break;
+                        default:
                             return false;
-                        }
-                    }
-                    else
-                    {
-                        return false;
+
                     }
                 }
             }
@@ -184,10 +191,17 @@ namespace Insta
             }
             else
             {
-                // two factor is required
                 if (verifyLogin.Value == InstaLoginResult.TwoFactorRequired)
                 {
-                    await IOService.OutputMessageAsync("Two Factor required");
+                    //не факт что отсюда сработает
+                    var isTwoFactorLoginSucceded = await AuthenticateByTwoFactorAsync(IOService);
+
+                    if (isTwoFactorLoginSucceded)
+                    {
+                        return true;
+                    }
+
+                    await IOService.OutputMessageAsync("Impossible to login");
                 }
                 else
                 {
@@ -196,6 +210,20 @@ namespace Insta
 
                 return false;
             }
+        }
+
+        private async Task<bool> AuthenticateByTwoFactorAsync(IInputOutputService IOService)
+        {
+            //await IOService.OutputMessageAsync("Two Factor required");
+            //await InstaApi.SendTwoFactorLoginSMSAsync();
+            //await IOService.OutputMessageAsync("Input login sms code:");
+            //var twoFactorCode = await IOService.GetMessage();
+            //var twoFactorLoginResult = await InstaApi.TwoFactorLoginAsync(twoFactorCode);
+            //return twoFactorLoginResult.Succeeded;
+
+            var result = await InstaApi.GetTwoFactorInfoAsync();
+
+            return false;
         }
 
         private void SaveSessionToFile(string stateFile)
@@ -251,25 +279,6 @@ namespace Insta
                     Console.WriteLine(
                         $"Story item: {item.Caption?.Text ?? item.Code}, images:{item.ImageList?.Count ?? 0}, videos: {item.VideoList?.Count ?? 0}");
             }
-        }
-
-        //удалить
-        public async Task UserInfo(string userName)
-        {
-            var userInfo = await InstaApi.UserProcessor
-                .GetUserInfoByUsernameAsync(userName);
-
-            var storyUris = (await InstaApi.UserProcessor
-                .GetFullUserInfoAsync(userInfo.Value.Pk)
-                ).Value.UserStory.Reel.Items
-                .SelectMany(storyItem => storyItem.ImageList.Select(img => img.Uri).Union(storyItem.VideoList.Select(vid => vid.Uri)))
-                .Distinct().ToArray();
-
-            var mediaUris = (await InstaApi.UserProcessor
-                .GetFullUserInfoAsync(userInfo.Value.Pk)
-                ).Value.Feed.Items
-                .SelectMany(storyItem => storyItem.Images.Select(img => img.Uri).Union(storyItem.Videos.Select(vid => vid.Uri)))
-                .Distinct().ToArray();
         }
     }
 }
