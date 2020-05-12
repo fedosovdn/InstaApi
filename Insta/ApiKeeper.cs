@@ -107,7 +107,7 @@ namespace Insta
                 {
                     await IOService.OutputMessageAsync($"Unable to login: {logInResult.Info.Message}");
 
-                    switch(logInResult.Value)
+                    switch (logInResult.Value)
                     {
                         case InstaLoginResult.ChallengeRequired:
                             var verificationResult = await AuthenticateByVerificationsAsync(userSessionData, IOService);
@@ -117,7 +117,7 @@ namespace Insta
                             }
                             break;
                         case InstaLoginResult.TwoFactorRequired:
-                            var twoFactorLoginResult = await AuthenticateByTwoFactorAsync(IOService);
+                            var twoFactorLoginResult = await AuthenticateByTwoFactorAsync(userSessionData, IOService);
                             if (!twoFactorLoginResult)
                             {
                                 return false;
@@ -165,7 +165,7 @@ namespace Insta
                             var phoneNumber = await InstaApi.RequestVerifyCodeToSMSForChallengeRequireAsync();
                             await IOService.OutputMessageAsync($"Enter a code sent to your number: {phoneNumber.Value.StepData.PhoneNumberPreview}");
                         }
-                        if (!string.IsNullOrEmpty(challenge.Value.StepData.Email))
+                        else if (!string.IsNullOrEmpty(challenge.Value.StepData.Email))
                         {
                             var email = await InstaApi.RequestVerifyCodeToEmailForChallengeRequireAsync();
                             await IOService.OutputMessageAsync($"Enter a code sent to your mail: {email.Value.StepData.ContactPoint}");
@@ -191,39 +191,24 @@ namespace Insta
             }
             else
             {
-                if (verifyLogin.Value == InstaLoginResult.TwoFactorRequired)
-                {
-                    //не факт что отсюда сработает
-                    var isTwoFactorLoginSucceded = await AuthenticateByTwoFactorAsync(IOService);
-
-                    if (isTwoFactorLoginSucceded)
-                    {
-                        return true;
-                    }
-
-                    await IOService.OutputMessageAsync("Impossible to login");
-                }
-                else
-                {
-                    await IOService.OutputMessageAsync(verifyLogin.Info.Message);
-                }
-
+                await IOService.OutputMessageAsync(verifyLogin.Info.Message);
                 return false;
             }
         }
 
-        private async Task<bool> AuthenticateByTwoFactorAsync(IInputOutputService IOService)
+        private async Task<bool> AuthenticateByTwoFactorAsync(UserSessionData userSessionData, IInputOutputService IOService)
         {
-            //await IOService.OutputMessageAsync("Two Factor required");
-            //await InstaApi.SendTwoFactorLoginSMSAsync();
-            //await IOService.OutputMessageAsync("Input login sms code:");
-            //var twoFactorCode = await IOService.GetMessage();
-            //var twoFactorLoginResult = await InstaApi.TwoFactorLoginAsync(twoFactorCode);
-            //return twoFactorLoginResult.Succeeded;
+            await IOService.OutputMessageAsync("Enter the code:");
+            var twoFactorCode = await IOService.GetMessage();
 
-            var result = await InstaApi.GetTwoFactorInfoAsync();
+            var twoFactorLoginResult = await InstaApi.TwoFactorLoginAsync(twoFactorCode);
 
-            return false;
+            if (twoFactorLoginResult.Succeeded)
+            {
+                return true;
+            }
+
+            return await AuthenticateByVerificationsAsync(userSessionData, IOService);
         }
 
         private void SaveSessionToFile(string stateFile)
