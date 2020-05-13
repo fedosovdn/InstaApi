@@ -12,6 +12,8 @@ namespace InstaApiDeveloping
 {
     public class JustForTestApi
     {
+        private const string SymbolToExit = "q";
+
         public async Task<bool> TestingFunctionalityAsync()
         {
             const string stateFile = "state.bin";
@@ -26,18 +28,35 @@ namespace InstaApiDeveloping
                 return false;
             }
 
-            await IOService.OutputMessageAsync("User name to watch stories:");
-            var userName = await IOService.GetMessage();
-
-            var userService = new UserService(apiKeeper.InstaApi);
-            var userInfo = userService.GetUserInfo(userName).Result;
-
-            var mediaService = new StoryService(apiKeeper.InstaApi);
-            var stories = mediaService.GetUserStories(userInfo).Result;
-
-            OpenStoriesInBrowser(stories);
+            ShowStories(apiKeeper, IOService);
 
             return true;
+        }
+
+        private async void ShowStories(ApiKeeper apiKeeper, IInputOutputService IOService)
+        {
+            var exitFlag = false;
+
+            do
+            {
+                await IOService.OutputMessageAsync($"User name to watch stories (press {SymbolToExit} to exit):");
+                var userName = await IOService.GetMessage();
+
+                if (userName == SymbolToExit)
+                {
+                    exitFlag = true;
+                }
+                else
+                {
+                    var userService = new UserService(apiKeeper.InstaApi);
+                    var userInfo = userService.GetUserInfo(userName).Result;
+
+                    var mediaService = new StoryService(apiKeeper.InstaApi);
+                    var stories = mediaService.GetUserStories(userInfo).Result;
+
+                    OpenStoriesInBrowser(stories);
+                }
+            } while (!exitFlag);
         }
 
         private void OpenStoriesInBrowser(IReadOnlyList<StoryInfo> stories)
