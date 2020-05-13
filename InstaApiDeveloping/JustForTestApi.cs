@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Informers;
 using Insta;
+using Insta.AuthenticationProcessor.Services;
 using Insta.StoryProcessor;
 using Insta.StoryProcessor.Services;
 using Insta.UserProcessor.Services;
@@ -17,16 +18,18 @@ namespace InstaApiDeveloping
         public async Task<bool> TestingFunctionalityAsync()
         {
             const string stateFile = "state.bin";
-            var apiKeeper = new ApiKeeper();
 
             var IOService = new ConsoleInputOutputService();
 
-            var resultAuthentificate = await apiKeeper.AuthentificateByDefaultWay(stateFile, IOService);
+            var authentificator = new Authentificator();
+            var (resultAuthentificate, instaApi) = await authentificator.AuthentificateByDefaultWay(stateFile, IOService);
 
             if (!resultAuthentificate)
             {
                 return false;
             }
+
+            var apiKeeper = new ApiKeeper(instaApi);
 
             ShowStories(apiKeeper, IOService);
 
