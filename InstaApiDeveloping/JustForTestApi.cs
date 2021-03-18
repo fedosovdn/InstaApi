@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Informers;
+﻿using Informers;
 using Insta;
 using Insta.AuthenticationProcessor.Services;
 using Insta.StoryProcessor;
 using Insta.StoryProcessor.Services;
 using Insta.UserProcessor.Services;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace InstaApiDeveloping
 {
@@ -31,12 +31,16 @@ namespace InstaApiDeveloping
 
             var apiKeeper = new ApiKeeper(instaApi);
 
-            ShowStories(apiKeeper, IOService);
+            await ShowStories(apiKeeper, IOService);
+
+            //await apiKeeper.DoShowStories();
+
+            //await Tratata(apiKeeper);
 
             return true;
         }
 
-        private async void ShowStories(ApiKeeper apiKeeper, IInputOutputService IOService)
+        private async Task ShowStories(ApiKeeper apiKeeper, IInputOutputService IOService)
         {
             var exitFlag = false;
 
